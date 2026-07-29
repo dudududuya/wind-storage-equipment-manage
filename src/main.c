@@ -14,7 +14,7 @@ static void AddDeviceMenu(DevManager* mgr)
     getchar();
     fgets(parent_id, ID_MAX_LEN, stdin);
     parent_id[strcspn(parent_id, "\n")] = '\0';
-    printf("请输入设备类型(0总站 1箱变 2PCS 3BMS 4储能仓 5模组 7电芯): ");
+    printf("请输入设备类型(0总站 1箱变 2PCS 3BMS 4储能仓 5电池簇 6模组 7电芯): ");
     scanf("%d", &type);
     printf("请输入设备名称: ");
     getchar();
