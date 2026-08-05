@@ -1,7 +1,8 @@
 #include "../inc/data_struct.h"
+
 static int hash_collision = 0;
 
-// 简单字符串哈希算法
+// BKDR字符串哈希算法（高效低冲突）
 int HashCalc(const char* dev_id)
 {
     unsigned int hash = 0;
@@ -18,12 +19,29 @@ int GetHashCollisionCount(void)
     return hash_collision;
 }
 
-// 插入节点到哈希表
+// 创建哈希表
+HashTable* CreateHashTable()
+{
+    HashTable* table = (HashTable*)malloc(sizeof(HashTable));
+    if (!table) return NULL;
+    memset(table, 0, sizeof(HashTable));
+    return table;
+}
+
+// 销毁哈希表（仅释放桶结构，节点内存由设备树统一管理）
+void DestroyHashTable(HashTable* table)
+{
+    if (!table) return;
+    free(table);
+}
+
+// 插入节点（头插法，O(1)）
 int HashInsertNode(HashTable* table, DevNode* node)
 {
-    if (!table || !node) return ERR_MALLOC_FAIL;
+    if (!table || !node) return ERR_PARAM_INVALID;
     int idx = HashCalc(node->dev_id);
     DevNode* p = table->bucket[idx];
+
     // 查重
     while (p)
     {
@@ -32,19 +50,21 @@ int HashInsertNode(HashTable* table, DevNode* node)
         p = p->brother;
         hash_collision++;
     }
-    // 头插法
+
+    // 头插法入链
     node->brother = table->bucket[idx];
     table->bucket[idx] = node;
     return RET_OK;
 }
 
-// 根据ID查找节点
+// 按ID查找节点（平均O(1)）
 DevNode* HashFindNode(DevManager* manager, const char* target_id)
 {
     if (!manager || !target_id) return NULL;
     HashTable* table = manager->hash_table;
     int idx = HashCalc(target_id);
     DevNode* p = table->bucket[idx];
+
     while (p)
     {
         if (strcmp(p->dev_id, target_id) == 0)
@@ -54,13 +74,14 @@ DevNode* HashFindNode(DevManager* manager, const char* target_id)
     return NULL;
 }
 
-// 哈希表删除指定节点
+// 删除指定节点
 int HashDelNode(HashTable* table, const char* dev_id)
 {
-    if (!table || !dev_id) return RET_OK;
+    if (!table || !dev_id) return ERR_PARAM_INVALID;
     int idx = HashCalc(dev_id);
     DevNode* cur = table->bucket[idx];
     DevNode* pre = NULL;
+
     while (cur)
     {
         if (strcmp(cur->dev_id, dev_id) == 0)
@@ -74,5 +95,5 @@ int HashDelNode(HashTable* table, const char* dev_id)
         pre = cur;
         cur = cur->brother;
     }
-    return ERR_PARENT_NOT_FOUND;
+    return ERR_NODE_NOT_FOUND;
 }

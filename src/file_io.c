@@ -1,12 +1,7 @@
-
 #include "../inc/data_struct.h"
 
 /**
- * 一次性拆分CSV整行，兼容双引号包裹字段
- * @param line 原始行字符串（会被修改）
- * @param fields 输出字段指针数组
- * @param max_fields 最大支持列数
- * @return 实际列数
+ * CSV行拆分，兼容双引号包裹字段
  */
 static int split_csv_line(char* line, char** fields, int max_fields)
 {
@@ -27,7 +22,6 @@ static int split_csv_line(char* line, char** fields, int max_fields)
             continue;
         }
 
-        // 仅非引号内的逗号作为分隔符
         if (*ptr == ',' && in_quote == 0)
         {
             *ptr = '\0';
@@ -38,6 +32,7 @@ static int split_csv_line(char* line, char** fields, int max_fields)
     return col_cnt;
 }
 
+// 加载CSV设备数据
 int LoadCsvData(DevManager* mgr, const char* path)
 {
     if (!mgr || !path) return ERR_FILE_OPEN;
@@ -45,7 +40,7 @@ int LoadCsvData(DevManager* mgr, const char* path)
     FILE* fp = fopen(path, "r");
     if (!fp)
     {
-        printf("[错误] 无法打开文件: %s\n", path);
+        fprintf(stderr, "[错误] 无法打开文件: %s\n", path);
         return ERR_FILE_OPEN;
     }
 
@@ -69,11 +64,10 @@ int LoadCsvData(DevManager* mgr, const char* path)
         if (strlen(buf) == 0)
             continue;
 
-        // 一次性拆分所有列
         int col_num = split_csv_line(buf, fields, 16);
         if (col_num < 8)
         {
-            printf("[警告] 第%d行字段不足(%d列)，跳过\n", line_num, col_num);
+            fprintf(stderr, "[警告] 第%d行字段不足(%d列)，跳过\n", line_num, col_num);
             fail++;
             continue;
         }
@@ -95,7 +89,7 @@ int LoadCsvData(DevManager* mgr, const char* path)
     }
 
     fclose(fp);
-    printf("[CSV加载完成] 成功加载 %d 台设备，失败 %d 台\n", success, fail);
+    fprintf(stderr, "[CSV加载] 成功 %d 台，失败 %d 台\n", success, fail);
     return RET_OK;
 }
 
@@ -110,13 +104,13 @@ static void WriteNodeRecur(FILE* fp, DevNode* node)
         WriteNodeRecur(fp, node->children[i]);
 }
 
+// 保存数据到CSV
 int SaveDataToCsv(DevManager* mgr, const char* path)
 {
     if (!mgr || !path) return ERR_FILE_OPEN;
     FILE* fp = fopen(path, "w");
     if (!fp) return ERR_FILE_OPEN;
 
-    // 表头与原始CSV完全一致
     fprintf(fp, "dev_id,dev_type,name,parent_id,soc,voltage,current,temperature,alarm_code,ext_json\n");
     WriteNodeRecur(fp, mgr->root);
 
