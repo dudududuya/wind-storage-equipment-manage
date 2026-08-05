@@ -138,6 +138,14 @@ static void HandleClient(int client_fd)
         snprintf(content, sizeof(content),
                  ret_code == RET_OK ? "删除成功" : "删除失败，未找到设备");
     }
+    else if (strcmp(cmd_type, "UPDATE_TEMP") == 0) {
+        char dev_id[ID_MAX_LEN];
+        float new_temp;
+        sscanf(args, "%s %f", dev_id, &new_temp);
+        ret_code = UpdateDeviceTemp(g_mgr, dev_id, new_temp);
+        snprintf(content, sizeof(content),
+                 ret_code == RET_OK ? "温度修改成功" : "修改失败，未找到指定设备");
+    }
     else if (strcmp(cmd_type, "PRINT_TREE") == 0) {
         char* buffer = NULL;
         size_t size = 0;
@@ -183,7 +191,6 @@ static void HandleClient(int client_fd)
     }
     else if (strcmp(cmd_type, "EXIT") == 0) {
         snprintf(content, sizeof(content), "引擎正在关闭...");
-        /* 先发送响应再退出 */
         int content_len = strlen(content);
         SendAll(client_fd, &ret_code, sizeof(ret_code));
         SendAll(client_fd, &content_len, sizeof(content_len));
@@ -230,7 +237,6 @@ int main(int argc, char* argv[])
 {
     int foreground = (argc >= 2 && strcmp(argv[1], "--foreground") == 0);
 
-    /* 提前获取数据文件绝对路径 */
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
@@ -252,7 +258,6 @@ int main(int argc, char* argv[])
         signal(SIGCHLD, SIG_IGN);
     }
 
-    /* 初始化设备管理器 */
     g_mgr = CreateDevManager();
     if (!g_mgr) {
         fprintf(stderr, "CreateDevManager 失败\n");
@@ -261,7 +266,6 @@ int main(int argc, char* argv[])
 
     LoadCsvData(g_mgr, g_data_path);
 
-    /* 创建监听套接字 */
     g_listen_fd = CreateServerSocket(SOCK_PATH);
     if (g_listen_fd == -1) {
         fprintf(stderr, "创建服务端套接字失败\n");
@@ -270,13 +274,13 @@ int main(int argc, char* argv[])
     }
 
     if (foreground) {
-        printf("存储引擎已启动（前台模式）\n");
+        printf("存储引擎已启动\n");
         printf("套接字路径: %s\n", SOCK_PATH);
         printf("数据文件路径: %s\n", g_data_path);
-        printf("按 Ctrl+C 优雅退出\n");
+        printf("按 Ctrl+C 退出\n");
     }
 
-    /* 主循环：接受客户端连接 */
+    // 主循环：接受客户端连接
     while (g_running) {
         int client_fd = accept(g_listen_fd, NULL, NULL);
         if (client_fd < 0) {

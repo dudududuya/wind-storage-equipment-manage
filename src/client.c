@@ -17,7 +17,8 @@ int main()
         printf("2. 删除设备\n");
         printf("3. 打印设备树\n");
         printf("4. 查看告警电芯\n");
-        printf("5. 保存数据\n");
+        printf("5. 修改设备温度\n");
+        printf("6. 保存数据\n");
         printf("0. 退出客户端\n");
         printf("请选择: ");
 
@@ -58,10 +59,11 @@ int main()
                 _scan_ret = scanf("%s", name);
                 (void)_scan_ret;
 
+
                 printf("温度: ");
                 _scan_ret = scanf("%f", &temp);
                 (void)_scan_ret;
-                
+
                 snprintf(cmd, sizeof(cmd), "ADD %s %s %d %s %.2f", dev_id, parent_id, type, name, temp);
                 break;
             }
@@ -75,7 +77,19 @@ int main()
             }
             case 3: snprintf(cmd, sizeof(cmd), "PRINT_TREE"); break;
             case 4: snprintf(cmd, sizeof(cmd), "PRINT_ALARM"); break;
-            case 5: snprintf(cmd, sizeof(cmd), "SAVE"); break;
+            case 5: {
+                char dev_id[ID_MAX_LEN];
+                float new_temp;
+                printf("目标设备ID: ");
+                _scan_ret = scanf("%s", dev_id);
+                (void)_scan_ret;
+                printf("新的温度值: ");
+                _scan_ret = scanf("%f", &new_temp);
+                (void)_scan_ret;
+                snprintf(cmd, sizeof(cmd), "UPDATE_TEMP %s %.2f", dev_id, new_temp);
+                break;
+            }
+            case 6: snprintf(cmd, sizeof(cmd), "SAVE"); break;
             default: printf("无效选项\n"); continue;
         }
 

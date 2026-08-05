@@ -38,7 +38,7 @@ static void FindAlarmRecur(FILE* fp, DevNode* node)
 {
     if (!node) return;
 
-    if (node->dev_type == DEV_CELL && node->temperature >= ALARM_TEMP)
+    if (node->temperature >= ALARM_TEMP)
     {
         fprintf(fp, "\n【高温告警】电芯ID: %s | 名称: %s | 温度: %.2f℃ (阈值: %.0f℃ )\n",
                node->dev_id, node->name, node->temperature, ALARM_TEMP);

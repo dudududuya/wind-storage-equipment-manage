@@ -75,12 +75,13 @@ void DestroyDevManager(DevManager* mgr);
 void DestroyDeviceTree(DevManager* mgr);
 int AddNewDevice(DevManager* mgr, const char* dev_id, const char* parent_id, int type, const char* name, float temp);
 int DeleteDeviceById(DevManager* mgr, const char* dev_id);
+int UpdateDeviceTemp(DevManager* mgr, const char* dev_id, float new_temp); // 修改设备温度
 
 // ========== CSV持久化 ==========
 int LoadCsvData(DevManager* mgr, const char* path);
 int SaveDataToCsv(DevManager* mgr, const char* path);
 
-// 打印与告警
+// ========== 打印与告警 ==========
 void PrintAllTree(DevManager* mgr);
 void PrintAllAlarmCell(DevManager* mgr);
 void PrintAllTreeToStream(DevManager* mgr, FILE* fp);

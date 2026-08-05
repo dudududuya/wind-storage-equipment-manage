@@ -155,3 +155,15 @@ int DeleteDeviceById(DevManager* mgr, const char* del_id)
     DestroyNode(del_node);
     return RET_OK;
 }
+
+// 修改指定ID设备的温度（哈希O(1)查找，直接修改）
+int UpdateDeviceTemp(DevManager* mgr, const char* dev_id, float new_temp)
+{
+    if (!mgr || !dev_id) return ERR_PARAM_INVALID;
+
+    DevNode* node = HashFindNode(mgr, dev_id);
+    if (!node) return ERR_NODE_NOT_FOUND;
+
+    node->temperature = new_temp;
+    return RET_OK;
+}
